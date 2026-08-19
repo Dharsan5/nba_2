@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPP – SolarFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#EEF2FF;
+  --surface:#FFFFFF;
+  --card:#FFFFFF;
+  --border:#C7D4F0;
+  --text:#1A2050;
+  --muted:#6B7BAD;
+  --muted2:#4A5A8C;
+  --accent:#D97706;
+  --accent2:#F59E0B;
+  --solar:#F59E0B;
+  --grid:#0284C7;
+  --battery:#059669;
+  --load:#7C3AED;
+  --danger:#DC2626;
+}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+
+/* SIDEBAR */
+.sidebar{width:260px;min-height:100vh;background:var(--surface);border-right:2px solid var(--border);padding:1.75rem 1.25rem;flex-shrink:0;display:flex;flex-direction:column;box-shadow:4px 0 16px rgba(100,120,200,0.1)}
+.logo{font-family:Rajdhani;font-size:1.75rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding-left:.5rem}
+.logo-sun{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-sun svg{width:16px;height:16px;fill:#fff}
+
+.nav-section{font-size:.62rem;color:#9BA8CC;letter-spacing:.18em;text-transform:uppercase;padding:.5rem .5rem .4rem;margin-top:.5rem}
+.nav a{display:flex;align-items:center;gap:.65rem;color:var(--muted2);padding:.55rem .75rem;border-radius:8px;text-decoration:none;font-size:.78rem;transition:all .2s;margin-bottom:2px}
+.nav a:hover{color:var(--text);background:rgba(100,120,200,.08)}
+.nav a.active{color:var(--accent);background:#FEF3C7;border:1px solid #FDE68A}
+.nav-icon{font-size:14px;width:20px;text-align:center}
+
+.sidebar-footer{margin-top:auto;padding-top:1.5rem;border-top:2px solid var(--border);font-size:.7rem;color:var(--muted)}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--battery);margin-right:.4rem;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 4px var(--battery)}50%{opacity:.3;box-shadow:none}}
+.upd{margin-top:.4rem;font-size:.68rem;color:#9BA8CC}
+
+/* MAIN */
+.main{flex:1;padding:2rem 2.5rem;overflow-y:auto;min-width:0;background:#EEF2FF}
+
+/* HEADER */
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem}
+.page-head h1{font-family:Rajdhani;font-size:2.1rem;font-weight:700;color:var(--accent);line-height:1}
+.page-head p{color:var(--muted2);font-size:.75rem;margin-top:.3rem}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:#D1FAE5;border:1.5px solid #6EE7B7;color:#065F46;padding:.35rem .8rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#10B981;animation:blink 2s infinite}
+
+/* METRIC CARDS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.metric{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem 1.4rem;position:relative;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;cursor:default;box-shadow:0 2px 8px rgba(100,120,200,.08)}
+.metric:hover{transform:translateY(-2px);border-color:var(--accent2);box-shadow:0 6px 20px rgba(245,158,11,.15)}
+.metric-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.metric-label{font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;font-weight:600}
+.metric-val{font-family:Rajdhani;font-size:2rem;font-weight:700;line-height:1;margin-bottom:.25rem}
+.metric-sub{font-size:.68rem;color:var(--muted)}
+.metric-icon{position:absolute;top:.9rem;right:.9rem;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px}
+
+/* FLOW DIAGRAM */
+.flow-section{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.section-label{font-size:.7rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:1.5rem;font-weight:600}
+.flow-grid{display:grid;grid-template-columns:1fr 160px 1fr;grid-template-rows:auto 120px auto;gap:0;align-items:center;justify-items:center;position:relative}
+
+.flow-node{background:#F8FAFF;border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.2rem;text-align:center;min-width:120px;transition:border-color .3s,box-shadow .2s}
+.flow-node:hover{border-color:var(--grid);box-shadow:0 4px 12px rgba(2,132,199,.12)}
+.node-icon{font-size:22px;margin-bottom:.4rem}
+.node-val{font-family:Rajdhani;font-size:1.5rem;font-weight:700;line-height:1;color:var(--text)}
+.node-label{font-size:.68rem;color:var(--muted2);margin-top:.2rem}
+
+.inverter-node{background:#EFF6FF;border:2.5px solid var(--grid);border-radius:50%;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.75rem;color:var(--grid);font-weight:700}
+.inverter-label{font-size:.62rem;color:var(--muted);margin-top:.2rem}
+
+/* FLOW LINES */
+.flow-line{position:absolute;background:var(--border);pointer-events:none}
+.fl-h{height:2px}
+.fl-v{width:2px}
+.fl-active{background:var(--accent);box-shadow:0 0 8px rgba(245,158,11,.4)}
+
+/* BATTERY STATE BADGES */
+.state-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.65rem;margin-top:.35rem;font-weight:600}
+.state-charging{background:#D1FAE5;color:#065F46;border:1.5px solid #6EE7B7}
+.state-discharging{background:#FEF3C7;color:#92400E;border:1.5px solid #FDE68A}
+.state-idle{background:#F1F5F9;color:#475569;border:1.5px solid #CBD5E1}
+.state-protect{background:#FEE2E2;color:#991B1B;border:1.5px solid #FECACA}
+
+/* SOC BAR */
+.soc-bar{margin-top:.5rem;height:5px;background:#E2E8F0;border-radius:3px;width:80px;margin-left:auto;margin-right:auto}
+.soc-fill{height:100%;border-radius:3px;background:var(--battery);transition:width 1s}
+
+/* DEPT SECTION */
+.dept-section{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.dept-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin-top:1rem}
+.dept-card{background:#F8FAFF;border:1.5px solid var(--border);border-radius:12px;padding:1rem;text-align:center;transition:border-color .2s,box-shadow .2s}
+.dept-card:hover{border-color:var(--accent2);box-shadow:0 4px 12px rgba(245,158,11,.12)}
+.dept-name{font-size:.7rem;color:var(--muted2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.dept-val{font-family:Rajdhani;font-size:1.6rem;font-weight:700;color:var(--accent)}
+.dept-bar-wrap{margin-top:.5rem;height:4px;background:#E2E8F0;border-radius:2px}
+.dept-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .8s}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.metric{animation:fadeUp .4s ease both}
+.metric:nth-child(1){animation-delay:.05s}
+.metric:nth-child(2){animation-delay:.1s}
+.metric:nth-child(3){animation-delay:.15s}
+.metric:nth-child(4){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-sun">
+      <svg viewBox="0 0 24 24"><path d="M12 2l1.5 4.5L18 4l-2.5 4 4.5 1.5-4.5 1.5L18 15l-4.5-2.5L12 17l-1.5-4.5L6 15l2.5-4L4 9.5l4.5-1.5L6 4l4.5 2.5z"/></svg>
+    </div>
+    SolarFlow
+  </div>
+  <div class="nav-section">Main</div>
+  <div class="nav">
+    <a href="index.html" class="active"><span class="nav-icon">🧠</span> VPP</a>
+    <a href="solar.html"><span class="nav-icon">📊</span> Solar Dashboard</a>
+    <a href="solar-forecast.html"><span class="nav-icon">☀️</span> Solar Forecast</a>
+    <a href="demand.html"><span class="nav-icon">⚡</span> Demand</a>
+    <a href="recommendations.html"><span class="nav-icon">💡</span> Recommendations</a>
+  </div>
+  <div class="sidebar-footer">
+    <span class="live-dot"></span> Live feed active
+    <div class="upd">Updated: <span id="lastUpd">--</span></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="page-head">
+    <div>
+      <h1>Virtual Power Plant</h1>
+      <p>Unified control of Solar, Battery &amp; Grid resources</p>
+    </div>
+    <div class="badge"><span class="badge-dot"></span> System Online</div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-bar" style="background:linear-gradient(90deg,var(--solar),var(--accent2))"></div>
+      <div class="metric-icon" style="background:rgba(245,158,11,.1);color:var(--accent)">☀️</div>
+      <div class="metric-label">Solar Generation</div>
+      <div class="metric-val" id="solar" style="color:var(--solar)">--</div>
+      <div class="metric-sub" id="solar-sub">Real-time output</div>
+    </div>
+    <div class="metric">
+  <div class="metric-bar" style="background:linear-gradient(90deg,#22c55e,#4ade80)"></div>
+  <div class="metric-icon" style="background:rgba(34,197,94,.1);color:#22c55e">📈</div>
+  <div class="metric-label">Today Solar Energy</div>
+  <div class="metric-val" id="solarDay" style="color:#22c55e">--</div>
+  <div class="metric-sub">Total generation today</div>
+</div>
+    <div class="metric">
+      <div class="metric-bar" style="background:linear-gradient(90deg,var(--load),#C4B5FD)"></div>
+      <div class="metric-icon" style="background:rgba(167,139,250,.1);color:var(--load)">🏛️</div>
+      <div class="metric-label">Campus Load</div>
+      <div class="metric-val" id="load" style="color:var(--load)">--</div>
+      <div class="metric-sub" id="load-sub">Active demand</div>
+    </div>
+    <div class="metric">
+      <div class="metric-bar" style="background:linear-gradient(90deg,var(--battery),#6EE7B7)"></div>
+      <div class="metric-icon" style="background:rgba(16,185,129,.1);color:var(--battery)">🔋</div>
+      <div class="metric-label">Battery SOC</div>
+      <div class="metric-val" id="soc" style="color:var(--battery)">--</div>
+      <div class="metric-sub" id="soc-sub">State of charge</div>
+    </div>
+    <div class="metric">
+      <div class="metric-bar" style="background:linear-gradient(90deg,var(--grid),#7DD3FC)"></div>
+      <div class="metric-icon" style="background:rgba(56,189,248,.1);color:var(--grid)">⚡</div>
+      <div class="metric-label">Energy Source</div>
+      <div class="metric-val" id="mix" style="color:var(--grid);font-size:1.3rem">--</div>
+      <div class="metric-sub" id="mix-sub">Active mode</div>
+    </div>
+  </div>
+
+  <!-- ENERGY FLOW -->
+  <div class="flow-section">
+    <div class="section-label">Energy Flow — Real Time</div>
+
+    <div style="position:relative;width:100%;min-height:260px">
+
+      <!-- SVG CONNECTORS (drawn behind nodes) -->
+      <svg id="flowSvg" style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+        <defs>
+          <marker id="arr-solar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#F59E0B"/>
+          </marker>
+          <marker id="arr-load" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#A78BFA"/>
+          </marker>
+          <marker id="arr-grid" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#38BDF8"/>
+          </marker>
+          <marker id="arr-battery" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#10B981"/>
+          </marker>
+          <filter id="glow-solar"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-grid"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <filter id="glow-battery"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <!-- Lines drawn by JS -->
+      </svg>
+
+      <!-- NODES LAYOUT -->
+      <div style="display:grid;grid-template-columns:1fr 160px 1fr;grid-template-rows:auto auto;gap:1.5rem 2rem;align-items:center;justify-items:center;position:relative;z-index:1">
+
+        <!-- Row 1 col 1: PV + Grid stacked -->
+        <div style="display:flex;flex-direction:column;gap:1rem;width:100%;align-items:center">
+          <div class="flow-node" id="node-pv" style="width:100%;max-width:160px">
+            <div class="node-icon">☀️</div>
+            <div class="node-val" id="pv" style="color:var(--solar)">--</div>
+            <div class="node-label">PV Array</div>
+          </div>
+          <div class="flow-node" id="node-grid" style="width:100%;max-width:160px">
+            <div class="node-icon">🔌</div>
+            <div class="node-val" id="grid" style="color:var(--grid)">--</div>
+            <div class="node-label">Grid Import</div>
+          </div>
+        </div>
+
+        <!-- Row 1 col 2: Inverter center -->
+        <div class="inverter-node" id="node-inv">
+          <div style="font-size:22px">⚙️</div>
+          <div style="font-size:.72rem;margin-top:.3rem;color:var(--grid);letter-spacing:.06em">INVERTER</div>
+          <div id="gridFlow" style="font-size:.62rem;color:var(--muted);margin-top:.15rem">--</div>
+        </div>
+
+        <!-- Row 1 col 3: Load + Battery stacked -->
+        <div style="display:flex;flex-direction:column;gap:1rem;width:100%;align-items:center">
+          <div class="flow-node" id="node-load" style="width:100%;max-width:160px">
+            <div class="node-icon">🏛️</div>
+            <div class="node-val" id="loadFlow" style="color:var(--load)">--</div>
+            <div class="node-label">Campus Load</div>
+          </div>
+          <div class="flow-node" id="node-bat" style="width:100%;max-width:160px">
+            <div class="node-icon">🔋</div>
+            <div class="node-val" id="batterySoc" style="color:var(--battery)">--</div>
+            <div id="batteryState" class="state-badge state-idle">Idle</div>
+            <div class="soc-bar"><div class="soc-fill" id="socFill" style="width:0%"></div></div>
+            <div class="node-label" style="margin-top:.3rem">Battery</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPARTMENT SOLAR -->
+  <div class="dept-section">
+    <div class="section-label">Department-Wise Solar Generation</div>
+    <div id="deptSolar" class="dept-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.8rem">Loading department data...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DEMO = {
+  solar_kw: 412.5, demand_kw: 380.2, battery_soc: 74,
+  source: "Solar + Battery",
+  department_solar_generation: {
+    "Science Block": 92.4, "Engineering": 114.8, "Admin": 61.2,
+    "Library": 44.7, "Hostel A": 55.1, "Hostel B": 43.3
+  }
+};
+
+async function loadVPP(){
+  let d;
+  try{
+    const res = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/data`);
+    d = await res.json();
+  } catch{ d = DEMO; }
+
+  const solar = d.solar_kw;
+  const load  = d.demand_kw;
+  const soc   = d.battery_soc;
+  const grid  = Math.max(load - solar, 0).toFixed(1);
+
+  document.getElementById("solar").textContent   = solar + " kW";
+  document.getElementById("load").textContent    = load + " kW";
+  document.getElementById("soc").textContent     = soc + " %";
+  document.getElementById("mix").textContent     = d.source;
+  document.getElementById("pv").textContent      = solar + " kW";
+  document.getElementById("loadFlow").textContent= load + " kW";
+  document.getElementById("batterySoc").textContent = soc + " %";
+  document.getElementById("grid").textContent    = grid + " kW";
+  document.getElementById("gridFlow").textContent = grid > 0 ? grid + " kW import" : "Self-sufficient";
+
+  document.getElementById("solar-sub").textContent  = solar > 0 ? "Active generation" : "No generation";
+  document.getElementById("load-sub").textContent   = load + " kW active demand";
+  document.getElementById("soc-sub").textContent    = soc >= 80 ? "Fully charged" : soc >= 40 ? "Moderate charge" : "Low — protect mode";
+  document.getElementById("mix-sub").textContent    = grid > 0 ? "Drawing " + grid + " kW from grid" : "100% self-powered";
+
+  document.getElementById("socFill").style.width = soc + "%";
+  document.getElementById("socFill").style.background = soc > 50 ? "var(--battery)" : soc > 20 ? "var(--accent)" : "var(--danger)";
+
+  const stateEl = document.getElementById("batteryState");
+  if(solar > load){ stateEl.textContent="Charging"; stateEl.className="state-badge state-charging"; }
+  else if(solar < load && soc > 20){ stateEl.textContent="Discharging"; stateEl.className="state-badge state-discharging"; }
+  else if(soc <= 20){ stateEl.textContent="Protected"; stateEl.className="state-badge state-protect"; }
+  else{ stateEl.textContent="Idle"; stateEl.className="state-badge state-idle"; }
+
+  const depts = d.department_solar_generation;
+  const maxVal = Math.max(...Object.values(depts));
+  const deptDiv = document.getElementById("deptSolar");
+  deptDiv.innerHTML = Object.entries(depts).map(([k,v]) => `
+    <div class="dept-card">
+      <div class="dept-name">${k}</div>
+      <div class="dept-val">${v} <span style="font-size:.9rem;color:var(--muted2)">kW</span></div>
+      <div class="dept-bar-wrap"><div class="dept-bar" style="width:${Math.round((v/maxVal)*100)}%"></div></div>
+    </div>
+  `).join('');
+
+  document.getElementById("lastUpd").textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+async function loadSolarFullDay(){
+
+  try{
+    const res = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/solar-full-day`);
+
+    if(!res.ok){
+      throw new Error("API not ready");
+    }
+
+    const data = await res.json();
+
+    document.getElementById("solarDay").textContent =
+        data.total_solar_generation_kwh + " kWh";
+
+    const hourly = data.hourly_breakdown || [];
+
+    if(hourly.length === 0){
+      document.getElementById("hourlySolar").innerHTML =
+        "<div style='color:var(--muted)'>No solar logged yet</div>";
+    }else{
+      document.getElementById("hourlySolar").innerHTML =
+        hourly.map(h => `
+          <div style="display:flex;justify-content:space-between;
+                      padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.05)">
+            <span>${h.hour}:00</span>
+            <span style="color:var(--solar)">${h.solar_kw} kW</span>
+          </div>
+        `).join("");
+    }
+
+  }catch(e){
+    console.log("Solar full day fetch error:", e);
+  }
+}
+
+loadVPP();
+loadSolarFullDay();
+
+setInterval(loadVPP, 5000);
+setInterval(loadSolarFullDay, 60000);
+</script>
+</body>
+</html>

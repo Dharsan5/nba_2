@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Dashboard – SolarFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#EEF2FF;
+  --surface:#FFFFFF;
+  --card:#FFFFFF;
+  --border:#C7D4F0;
+  --text:#1A2050;
+  --muted:#6B7BAD;
+  --muted2:#4A5A8C;
+  --accent:#D97706;
+  --accent2:#F59E0B;
+  --solar:#F59E0B;
+  --grid:#0284C7;
+  --battery:#059669;
+  --load:#7C3AED;
+  --danger:#DC2626;
+  --temp:#EA580C;
+  --wind:#0891B2;
+}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;min-height:100vh;background:var(--surface);border-right:2px solid var(--border);padding:1.75rem 1.25rem;flex-shrink:0;display:flex;flex-direction:column;box-shadow:4px 0 16px rgba(100,120,200,.1)}
+.logo{font-family:Rajdhani;font-size:1.75rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding-left:.5rem}
+.logo-sun{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-sun svg{width:16px;height:16px;fill:#fff}
+.nav-section{font-size:.62rem;color:#9BA8CC;letter-spacing:.18em;text-transform:uppercase;padding:.5rem .5rem .4rem;margin-top:.5rem}
+.nav a{display:flex;align-items:center;gap:.65rem;color:var(--muted2);padding:.55rem .75rem;border-radius:8px;text-decoration:none;font-size:.78rem;transition:all .2s;margin-bottom:2px}
+.nav a:hover{color:var(--text);background:rgba(100,120,200,.08)}
+.nav a.active{color:var(--accent);background:#FEF3C7;border:1px solid #FDE68A}
+.nav-icon{font-size:14px;width:20px;text-align:center}
+.sidebar-footer{margin-top:auto;padding-top:1.5rem;border-top:2px solid var(--border);font-size:.7rem;color:var(--muted)}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--battery);margin-right:.4rem;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 4px var(--battery)}50%{opacity:.3;box-shadow:none}}
+
+/* MAIN */
+.main{flex:1;padding:2rem 2.5rem;overflow-y:auto;min-width:0;background:#EEF2FF}
+
+/* PAGE HEADER */
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem}
+.page-head h1{font-family:Rajdhani;font-size:2.1rem;font-weight:700;color:var(--accent);line-height:1}
+.page-head p{color:var(--muted2);font-size:.75rem;margin-top:.3rem}
+.meta-row{display:flex;gap:1.5rem;margin-top:.6rem}
+.meta-pill{display:inline-flex;align-items:center;gap:.4rem;background:#F8FAFF;border:1.5px solid var(--border);color:var(--muted2);padding:.25rem .75rem;border-radius:20px;font-size:.72rem}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:#D1FAE5;border:1.5px solid #6EE7B7;color:#065F46;padding:.35rem .8rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#059669;animation:blink 2s infinite}
+
+/* SECTION LABEL */
+.section-label{font-size:.65rem;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--border);font-weight:600}
+
+/* ENERGY CARDS */
+.energy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem}
+.ecard{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;position:relative;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;cursor:default;box-shadow:0 2px 8px rgba(100,120,200,.08)}
+.ecard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.15);border-color:var(--accent2)}
+.ecard-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.ecard-icon{position:absolute;top:1rem;right:1rem;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ecard-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem;font-weight:600}
+.ecard-val{font-family:Rajdhani;font-size:2.6rem;font-weight:700;line-height:1;margin-bottom:.2rem;color:var(--text)}
+.ecard-sub{font-size:.7rem;color:var(--muted2)}
+
+/* WEATHER SECTION */
+.weather-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.weather-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
+.wcard{background:#F8FAFF;border:1.5px solid var(--border);border-radius:12px;padding:1.1rem 1rem;text-align:center;transition:border-color .2s,box-shadow .2s}
+.wcard:hover{border-color:var(--grid);box-shadow:0 4px 12px rgba(2,132,199,.12)}
+.wcard-icon{font-size:24px;margin-bottom:.5rem;display:block}
+.wcard-val{font-family:Rajdhani;font-size:2rem;font-weight:700;line-height:1;margin-bottom:.2rem;color:var(--text)}
+.wcard-label{font-size:.65rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.wcard-unit{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+
+/* CONDITION BADGE */
+.condition-badge{display:inline-block;padding:.3rem .9rem;border-radius:20px;font-size:.72rem;font-weight:600;margin-top:.25rem}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ecard{animation:fadeUp .35s ease both}
+.ecard:nth-child(1){animation-delay:.05s}
+.ecard:nth-child(2){animation-delay:.1s}
+.ecard:nth-child(3){animation-delay:.15s}
+.ecard:nth-child(4){animation-delay:.2s}
+.wcard{animation:fadeUp .4s ease both}
+.wcard:nth-child(1){animation-delay:.15s}
+.wcard:nth-child(2){animation-delay:.2s}
+.wcard:nth-child(3){animation-delay:.25s}
+.wcard:nth-child(4){animation-delay:.3s}
+.wcard:nth-child(5){animation-delay:.35s}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-sun">
+      <svg viewBox="0 0 24 24"><path d="M12 2l1.5 4.5L18 4l-2.5 4 4.5 1.5-4.5 1.5L18 15l-4.5-2.5L12 17l-1.5-4.5L6 15l2.5-4L4 9.5l4.5-1.5L6 4l4.5 2.5z"/></svg>
+    </div>
+    SolarFlow
+  </div>
+  <div class="nav-section">Main</div>
+  <div class="nav">
+    <a href="index.html"><span class="nav-icon">🧠</span> VPP</a>
+    <a href="solar.html" class="active"><span class="nav-icon">📊</span> Solar Dashboard</a>
+    <a href="solar-forecast.html"><span class="nav-icon">☀️</span> Solar Forecast</a>
+    <a href="demand.html"><span class="nav-icon">⚡</span> Demand</a>
+    <a href="recommendations.html"><span class="nav-icon">💡</span> Recommendations</a>
+  </div>
+  <div class="sidebar-footer">
+    <span class="live-dot"></span> Live feed active
+    <div style="margin-top:.4rem;font-size:.68rem;">Updated: <span id="lastUpd">--</span></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="page-head">
+    <div>
+      <h1>Solar Dashboard</h1>
+      <p>Real-time AI-powered campus energy orchestration</p>
+      <div class="meta-row">
+        <span class="meta-pill">📍 <span id="location">Perundurai, IN</span></span>
+        <span class="meta-pill">🕒 <span id="lastUpdate">--</span></span>
+      </div>
+    </div>
+    <div class="badge"><span class="badge-dot"></span> Live Data</div>
+  </div>
+
+  <!-- ENERGY METRICS -->
+  <div class="section-label">Energy Status</div>
+  <div class="energy-grid">
+
+    <div class="ecard">
+      <div class="ecard-bar" style="background:linear-gradient(90deg,#F59E0B,#FACC15)"></div>
+      <div class="ecard-icon" style="background:rgba(245,158,11,.12);color:var(--solar)">☀️</div>
+      <div class="ecard-label">Solar Output</div>
+      <div class="ecard-val" id="solar" style="color:var(--solar)">--</div>
+      <div class="ecard-sub" id="solar-sub">Live generation</div>
+    </div>
+
+    <div class="ecard">
+      <div class="ecard-bar" style="background:linear-gradient(90deg,#A78BFA,#C4B5FD)"></div>
+      <div class="ecard-icon" style="background:rgba(167,139,250,.12);color:var(--load)">🏛️</div>
+      <div class="ecard-label">Campus Demand</div>
+      <div class="ecard-val" id="demand" style="color:var(--load)">--</div>
+      <div class="ecard-sub">Predicted load</div>
+    </div>
+
+    <div class="ecard">
+      <div class="ecard-bar" style="background:linear-gradient(90deg,#10B981,#6EE7B7)"></div>
+      <div class="ecard-icon" style="background:rgba(16,185,129,.12);color:var(--battery)">🔋</div>
+      <div class="ecard-label">Battery SOC</div>
+      <div class="ecard-val" id="soc" style="color:var(--battery)">--</div>
+      <div class="ecard-sub" id="soc-sub">Storage level</div>
+    </div>
+
+    <div class="ecard">
+      <div class="ecard-bar" style="background:linear-gradient(90deg,#38BDF8,#7DD3FC)"></div>
+      <div class="ecard-icon" style="background:rgba(56,189,248,.12);color:var(--grid)">⚡</div>
+      <div class="ecard-label">Energy Source</div>
+      <div class="ecard-val" id="source" style="color:var(--grid);font-size:1.4rem;padding-top:.35rem">--</div>
+      <div class="ecard-sub">Decision engine</div>
+    </div>
+
+  </div>
+
+  <!-- WEATHER -->
+  <div class="weather-wrap">
+    <div class="section-label">Weather Conditions</div>
+    <div class="weather-grid">
+
+      <div class="wcard">
+        <span class="wcard-icon">🌡️</span>
+        <div class="wcard-val" id="temperature" style="color:var(--temp)">--</div>
+        <div class="wcard-unit" style="color:var(--temp);opacity:.7">°C</div>
+        <div class="wcard-label">Temperature</div>
+      </div>
+
+      <div class="wcard">
+        <span class="wcard-icon">💧</span>
+        <div class="wcard-val" id="humidity" style="color:var(--grid)">--</div>
+        <div class="wcard-unit" style="color:var(--grid);opacity:.7">%</div>
+        <div class="wcard-label">Humidity</div>
+      </div>
+
+      <div class="wcard">
+        <span class="wcard-icon">☁️</span>
+        <div class="wcard-val" id="cloud" style="color:var(--muted2)">--</div>
+        <div class="wcard-unit" style="color:var(--muted2);opacity:.7">%</div>
+        <div class="wcard-label">Cloud Cover</div>
+      </div>
+
+      <div class="wcard">
+        <span class="wcard-icon">💨</span>
+        <div class="wcard-val" id="wind" style="color:var(--wind)">--</div>
+        <div class="wcard-unit" style="color:var(--wind);opacity:.7">km/h</div>
+        <div class="wcard-label">Wind Speed</div>
+      </div>
+
+      <div class="wcard">
+        <span class="wcard-icon" id="weatherIcon">🌤️</span>
+        <div class="wcard-val" id="weather" style="color:var(--accent2);font-size:1.1rem;padding-top:.3rem">--</div>
+        <div class="wcard-label" style="margin-top:.4rem">Condition</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const weatherIcons = {
+  "clear":["☀️","Sunny"], "sunny":["☀️","Sunny"],
+  "cloud":["☁️","Cloudy"], "overcast":["☁️","Overcast"],
+  "rain":["🌧️","Rainy"], "drizzle":["🌦️","Drizzle"],
+  "storm":["⛈️","Storm"], "thunder":["⛈️","Thunder"],
+  "fog":["🌫️","Foggy"], "haze":["🌫️","Hazy"],
+  "partly":["🌤️","Partly Cloudy"],
+};
+
+function getWeatherIcon(condition) {
+  if (!condition) return "🌤️";
+  const lower = condition.toLowerCase();
+  for (const [key, val] of Object.entries(weatherIcons)) {
+    if (lower.includes(key)) return val[0];
+  }
+  return "🌤️";
+}
+
+async function loadData() {
+  let d;
+  try {
+    const res = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/data`);
+    d = await res.json();
+  } catch { d = DEMO; }
+
+  document.getElementById("solar").textContent    = d.solar_kw + " kW";
+  document.getElementById("demand").textContent   = d.demand_kw + " kW";
+  document.getElementById("soc").textContent      = d.battery_soc + " %";
+  document.getElementById("source").textContent   = d.source;
+  document.getElementById("temperature").textContent = d.temperature;
+  document.getElementById("humidity").textContent    = d.humidity;
+  document.getElementById("cloud").textContent       = d.cloud;
+  document.getElementById("wind").textContent = d.wind_speed;
+document.getElementById("weather").textContent = d.weather_condition;
+document.getElementById("weatherIcon").textContent = getWeatherIcon(d.weather_condition);
+
+  const soc = d.battery_soc;
+  document.getElementById("soc-sub").textContent = soc >= 80 ? "Fully charged" : soc >= 40 ? "Moderate charge" : "Low — protect mode";
+  document.getElementById("solar-sub").textContent = d.solar_kw > 0 ? "Active generation" : "No generation";
+
+  document.getElementById("lastUpdate").textContent = new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
+  document.getElementById("lastUpd").textContent     = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+loadData();
+setInterval(loadData, 5000);
+</script>
+</body>
+</html>

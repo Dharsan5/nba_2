@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recommendations – SolarFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#EEF2FF;--surface:#FFFFFF;--card:#FFFFFF;--border:#C7D4F0;
+  --text:#1A2050;--muted:#6B7BAD;--muted2:#4A5A8C;
+  --accent:#D97706;--accent2:#F59E0B;
+  --battery:#059669;--grid:#0284C7;--load:#7C3AED;
+  --danger:#DC2626;--warn:#EA580C;
+}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:260px;min-height:100vh;background:var(--surface);border-right:2px solid var(--border);padding:1.75rem 1.25rem;flex-shrink:0;display:flex;flex-direction:column;box-shadow:4px 0 16px rgba(100,120,200,.1)}
+.logo{font-family:Rajdhani;font-size:1.75rem;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:.6rem;margin-bottom:2rem;padding-left:.5rem}
+.logo-sun{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-sun svg{width:16px;height:16px;fill:#fff}
+.nav-section{font-size:.62rem;color:#9BA8CC;letter-spacing:.18em;text-transform:uppercase;padding:.5rem .5rem .4rem;margin-top:.5rem}
+.nav a{display:flex;align-items:center;gap:.65rem;color:var(--muted2);padding:.55rem .75rem;border-radius:8px;text-decoration:none;font-size:.78rem;transition:all .2s;margin-bottom:2px}
+.nav a:hover{color:var(--text);background:rgba(100,120,200,.08)}
+.nav a.active{color:var(--accent);background:#FEF3C7;border:1px solid #FDE68A}
+.nav-icon{font-size:14px;width:20px;text-align:center}
+.sidebar-footer{margin-top:auto;padding-top:1.5rem;border-top:2px solid var(--border);font-size:.7rem;color:var(--muted)}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--battery);margin-right:.4rem;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 4px var(--battery)}50%{opacity:.3;box-shadow:none}}
+
+/* MAIN */
+.main{flex:1;padding:2rem 2.5rem;overflow-y:auto;min-width:0;background:#EEF2FF}
+
+/* PAGE HEADER */
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem}
+.page-head h1{font-family:Rajdhani;font-size:2.1rem;font-weight:700;color:var(--accent);line-height:1}
+.page-head p{color:var(--muted2);font-size:.75rem;margin-top:.3rem}
+.badge{display:inline-flex;align-items:center;gap:.4rem;background:#D1FAE5;border:1.5px solid #6EE7B7;color:#065F46;padding:.35rem .8rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#059669;animation:blink 2s infinite}
+
+/* SECTION LABEL */
+.section-label{font-size:.65rem;color:var(--muted2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--border);font-weight:600}
+
+/* TWO-COL LAYOUT */
+.layout{display:grid;grid-template-columns:1fr 320px;gap:1.25rem;align-items:start}
+
+/* RECOMMENDATIONS */
+.rec-wrap{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.rec-empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.8rem}
+.rec-item{display:flex;gap:1rem;padding:1.1rem 1.2rem;border-radius:12px;border:1.5px solid var(--border);margin-bottom:.85rem;transition:border-color .2s,background .2s;cursor:default;position:relative;overflow:hidden}
+.rec-item:last-child{margin-bottom:0}
+.rec-item:hover{background:#F8FAFF;border-color:#A0BADC}
+.rec-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.rec-high::before{background:var(--danger)}
+.rec-med::before{background:var(--warn)}
+.rec-low::before{background:var(--battery)}
+.rec-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;margin-top:.1rem}
+.rec-high .rec-icon{background:#FEE2E2}
+.rec-med .rec-icon{background:#FFEDD5}
+.rec-low .rec-icon{background:#D1FAE5}
+.rec-body{flex:1;min-width:0}
+.rec-priority{display:inline-block;font-size:.6rem;padding:2px 8px;border-radius:10px;margin-bottom:.35rem;font-weight:600;letter-spacing:.05em}
+.pri-high{background:#FEE2E2;color:#991B1B;border:1.5px solid #FECACA}
+.pri-med{background:#FFEDD5;color:#9A3412;border:1.5px solid #FED7AA}
+.pri-low{background:#D1FAE5;color:#065F46;border:1.5px solid #6EE7B7}
+.rec-title{font-size:.85rem;font-weight:600;color:var(--text);margin-bottom:.3rem;line-height:1.4}
+.rec-desc{font-size:.74rem;color:var(--muted2);line-height:1.65}
+
+/* RIGHT COLUMN */
+.right-col{display:flex;flex-direction:column;gap:1.25rem}
+
+/* SAVINGS CARD */
+.savings-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.savings-big{text-align:center;padding:.75rem 0 1.25rem}
+.savings-lbl{font-size:.68rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.4rem;font-weight:600}
+.savings-amount{font-family:Rajdhani;font-size:3.4rem;font-weight:700;color:var(--accent);line-height:1;display:block}
+.savings-sub{font-size:.7rem;color:var(--muted);margin-top:.35rem}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.stat-box{background:#F8FAFF;border:1.5px solid var(--border);border-radius:10px;padding:.9rem 1rem;text-align:center;transition:border-color .2s,box-shadow .2s}
+.stat-box:hover{border-color:var(--accent2);box-shadow:0 4px 12px rgba(245,158,11,.12)}
+.stat-icon{font-size:20px;margin-bottom:.4rem;display:block}
+.stat-val{font-family:Rajdhani;font-size:1.7rem;font-weight:700;line-height:1;margin-bottom:.2rem;color:var(--text)}
+.stat-label{font-size:.62rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+
+/* ACTIONS CARD */
+.actions-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(100,120,200,.07)}
+.action-btn{display:flex;align-items:center;gap:.75rem;width:100%;padding:.8rem 1rem;border-radius:10px;border:1.5px solid var(--border);background:#F8FAFF;color:var(--text);font-family:'JetBrains Mono';font-size:.78rem;cursor:pointer;transition:all .2s;margin-bottom:.6rem;text-align:left}
+.action-btn:last-child{margin-bottom:0}
+.action-btn:hover{background:#FEF3C7;border-color:#FDE68A;transform:translateX(2px)}
+.action-btn:active{transform:scale(.98)}
+.btn-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.btn-content{flex:1}
+.btn-label{font-size:.78rem;font-weight:600;color:var(--text)}
+.btn-sub{font-size:.65rem;color:var(--muted);margin-top:.1rem}
+.btn-arrow{color:var(--muted);font-size:16px;line-height:1}
+
+/* SPINNER */
+.spinner-wrap{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:3rem;color:var(--muted);font-size:.8rem}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.alert-box{
+  margin-top:1rem;
+  background:#FEF9EC;
+  border:1.5px solid #FDE68A;
+  border-radius:12px;
+  padding:1rem;
+  animation:fadeUp .4s ease;
+}
+
+.alert-title{
+  font-size:.75rem;
+  color:#92400E;
+  margin-bottom:.4rem;
+  letter-spacing:.05em;
+  font-weight:600;
+}
+
+.alert-row{
+  font-size:.72rem;
+  color:#6B7BAD;
+  margin:.15rem 0;
+}
+
+.floating-alert{
+  position:fixed;
+  top:20px;
+  right:20px;
+  background:#FFFFFF;
+  border:1.5px solid #93C5FD;
+  border-radius:14px;
+  padding:1rem 1.2rem;
+  width:240px;
+  box-shadow:0 8px 24px rgba(59,130,246,.15);
+  display:none;
+  animation:slideIn .4s ease;
+  z-index:999;
+}
+
+.fa-title{
+  font-size:.75rem;
+  color:#92400E;
+  margin-bottom:.4rem;
+  font-weight:600;
+}
+
+.fa-row{
+  font-size:.72rem;
+  color:#4A5A8C;
+  margin:.2rem 0;
+}
+
+@keyframes slideIn{
+  from{transform:translateX(40px);opacity:0}
+  to{transform:translateX(0);opacity:1}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-sun">
+      <svg viewBox="0 0 24 24"><path d="M12 2l1.5 4.5L18 4l-2.5 4 4.5 1.5-4.5 1.5L18 15l-4.5-2.5L12 17l-1.5-4.5L6 15l2.5-4L4 9.5l4.5-1.5L6 4l4.5 2.5z"/></svg>
+    </div>
+    SolarFlow
+  </div>
+  <div class="nav-section">Main</div>
+  <div class="nav">
+    <a href="index.html"><span class="nav-icon">🧠</span> VPP</a>
+    <a href="solar.html"><span class="nav-icon">📊</span> Solar Dashboard</a>
+    <a href="solar-forecast.html"><span class="nav-icon">☀️</span> Solar Forecast</a>
+    <a href="demand.html"><span class="nav-icon">⚡</span> Demand</a>
+    <a href="recommendations.html" class="active"><span class="nav-icon">💡</span> Recommendations</a>
+  </div>
+  <div class="sidebar-footer">
+    <span class="live-dot"></span> Live feed active
+    <div style="margin-top:.4rem;font-size:.68rem;">Updated: <span id="lastUpd">--</span></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="page-head">
+    <div>
+      <h1>AI Recommendations</h1>
+      <p>Real-time optimization strategies powered by your energy data</p>
+    </div>
+    <div class="badge"><span class="badge-dot"></span> AI Active</div>
+  </div>
+
+  <div class="layout">
+
+    <!-- LEFT: RECOMMENDATIONS -->
+    <div>
+      <div class="section-label">Today's Optimization Recommendations</div>
+      <div class="rec-wrap">
+        <div id="recList">
+          <div class="spinner-wrap"><div class="spinner"></div> Loading recommendations...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right-col">
+
+      <!-- SAVINGS -->
+      <div class="savings-card">
+        <div class="section-label">Today's Impact</div>
+        <div class="savings-big">
+          <div class="savings-lbl">Estimated Cost Savings</div>
+          <span class="savings-amount" id="saveAmt">--</span>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <span class="stat-icon">🌿</span>
+            <div class="stat-val" id="co2Val" style="color:var(--battery)">--</div>
+            <div class="stat-label">CO₂ Saved</div>
+          </div>
+          <div class="stat-box">
+            <span class="stat-icon">🔌</span>
+            <div class="stat-val" id="gridVal" style="color:var(--grid)">--</div>
+            <div class="stat-label">Grid Import</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div class="actions-card">
+        <div class="section-label">Quick Actions</div>
+
+        <button class="action-btn" onclick="generateReport(this)">
+          <div class="btn-icon" style="background:rgba(56,189,248,.12);color:var(--grid)">📊</div>
+          <div class="btn-content">
+            <div class="btn-label" onclick="generateReport()">Generate AI Energy Report</div>
+            <div class="btn-sub">Download full optimization summary</div>
+          </div>
+          <span class="btn-arrow">›</span>
+        </button>
+
+        <button class="action-btn" onclick="refreshRecs(this)">
+          <div class="btn-icon" style="background:rgba(245,158,11,.12);color:var(--accent)">🔄</div>
+          <div class="btn-content">
+            <div class="btn-label" onclick="refreshAI()">Refresh Analysis</div>
+            <div class="btn-sub">Re-run AI recommendation engine</div>
+          </div>
+          <span class="btn-arrow">›</span>
+        </button>
+
+        <button class="action-btn" onclick="const l=this.querySelector('.btn-label');l.textContent='Alerts Configured ✓';this.style.borderColor='rgba(16,185,129,.35)'">
+          <div class="btn-icon" style="background:rgba(16,185,129,.12);color:var(--battery)">🔔</div>
+          <div class="btn-content">
+            <div class="btn-label" onclick="setAlerts()">Set Threshold Alerts</div>
+            <div class="btn-sub">Configure battery & grid notifications</div>
+          </div>
+          <span class="btn-arrow">›</span>
+        </button>
+
+        <div class="alert-box" id="alertBox" style="display:none">
+
+  <div class="alert-title">⚠️ Alert Thresholds Configured</div>
+
+  <div class="alert-row">
+    Battery Low Limit : <span id="batAlert"></span> %
+  </div>
+
+  <div class="alert-row">
+    Grid Peak Limit : <span id="gridAlert"></span> kW
+  </div>
+
+  <div class="alert-row">
+    Solar Low Limit : <span id="solarAlert"></span> kW
+  </div>
+
+</div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+
+const ICONS  = { HIGH:"⚠️", MEDIUM:"💡", LOW:"🔧" };
+const CLS    = { HIGH:"rec-high", MEDIUM:"rec-med", LOW:"rec-low" };
+const PRI    = { HIGH:"pri-high", MEDIUM:"pri-med", LOW:"pri-low" };
+const LABELS = { HIGH:"HIGH PRIORITY", MEDIUM:"MEDIUM PRIORITY", LOW:"LOW PRIORITY" };
+
+function renderRecs(list) {
+  const box = document.getElementById("recList");
+  if (!list || !list.length) {
+    box.innerHTML = '<div class="rec-empty">No recommendations at this time.</div>';
+    return;
+  }
+  box.innerHTML = list.map((r, i) => {
+    const [pri, title, desc] = r;
+    return `
+    <div class="rec-item ${CLS[pri]||'rec-low'}" style="animation:fadeUp .32s ease ${i*.07}s both">
+      <div class="rec-icon">${ICONS[pri]||'📌'}</div>
+      <div class="rec-body">
+        <span class="rec-priority ${PRI[pri]||'pri-low'}">${LABELS[pri]||'LOW PRIORITY'}</span>
+        <div class="rec-title">${title}</div>
+        <div class="rec-desc">${desc}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadData() {
+  let d;
+  try {
+    const res = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/data`);
+    if (!res.ok) throw new Error();
+    d = await res.json();
+  } catch { d = DEMO; }
+
+  document.getElementById("saveAmt").textContent = "₹" + Math.round(d.cost_saving).toLocaleString();
+  document.getElementById("co2Val").textContent  = d.co2_saved + " t";
+  document.getElementById("gridVal").textContent = d.grid_import + " kW";
+  document.getElementById("lastUpd").textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  renderRecs(d.recommendations);
+}
+
+function generateReport(btn) {
+  const l = btn.querySelector('.btn-label');
+  l.textContent = "Opening report...";
+  setTimeout(() => { l.textContent = "Generate AI Energy Report"; }, 3000);
+  window.open(`${window.__APP_CONFIG__.API_BASE}/api/report`);
+}
+
+function refreshRecs(btn) {
+  const l = btn.querySelector('.btn-label');
+  l.textContent = "Refreshing...";
+  document.getElementById("recList").innerHTML = '<div class="spinner-wrap"><div class="spinner"></div> Re-running AI engine...</div>';
+  loadData().then(() => { l.textContent = "Refresh Analysis"; });
+}
+function setAlerts(){
+
+  fetch(`${window.__APP_CONFIG__.API_BASE}/api/set-alerts`,
+  { method:"POST" })
+  .then(res=>res.json())
+  .then(data=>{
+
+      const box = document.getElementById("alertBox");
+
+      document.getElementById("batAlert").innerText =
+          data.battery_low;
+
+      document.getElementById("gridAlert").innerText =
+          data.grid_peak;
+
+      document.getElementById("solarAlert").innerText =
+          data.solar_low;
+
+      box.style.display = "block";
+
+      setTimeout(()=>{
+          box.style.display="none";
+      },5000);
+
+  });
+
+}
+
+loadData();
+setInterval(loadData, 5000);
+</script>
+</body>
+</html>

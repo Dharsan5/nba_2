@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demand & Prediction - Campus Energy Management</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary-solar:#D97706;
+--primary-blue:#2563EB;
+--dark-bg:#EEF2FF;
+--card-bg:#FFFFFF;
+--success:#059669;
+--warning:#DC2626;
+--text-primary:#1A2050;
+--text-secondary:#4A5A8C;
+--accent-cyan:#0284C7;
+--gradient-solar:linear-gradient(135deg,#F59E0B,#D97706);
+--gradient-card:linear-gradient(135deg,#FFFFFF,#F8FAFF)
+}
+body{
+font-family:'JetBrains Mono',monospace;
+background:var(--dark-bg);
+color:var(--text-primary)
+}
+.sidebar{
+position:fixed;
+width:260px;
+height:100vh;
+background:#FFFFFF;
+padding:1.75rem 1.25rem;
+border-right:2px solid #C7D4F0;
+display:flex;
+flex-direction:column;
+box-shadow:4px 0 16px rgba(100,120,200,.1)
+}
+.sidebar-logo{
+display:flex;
+align-items:center;
+gap:.75rem;
+margin-bottom:2rem;
+padding-left:.25rem
+}
+.sidebar-logo-icon{
+width:32px;
+height:32px;
+background:#D97706;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:16px;
+flex-shrink:0
+}
+.sidebar-logo-text{
+font-family:Rajdhani;
+font-size:1.7rem;
+font-weight:700;
+color:#D97706
+}
+.nav-label{
+font-size:.6rem;
+color:#9BA8CC;
+letter-spacing:.18em;
+text-transform:uppercase;
+padding:.25rem .5rem .6rem;
+margin-bottom:.25rem
+}
+.nav a{
+display:flex;
+align-items:center;
+gap:.7rem;
+color:#4A5A8C;
+padding:.55rem .75rem;
+border-radius:8px;
+text-decoration:none;
+font-size:.78rem;
+margin-bottom:2px;
+transition:color .2s,background .2s
+}
+.nav a:hover{
+color:#1A2050;
+background:rgba(100,120,200,.08)
+}
+.nav a.active{
+color:#D97706;
+background:#FEF3C7;
+border:1px solid #FDE68A
+}
+.nav-icon{
+font-size:14px;
+width:20px;
+text-align:center
+}
+
+.main-content{
+margin-left:260px;
+padding:2.5rem 3rem;
+background:#EEF2FF;
+min-height:100vh
+}
+
+/* ── Card base ── */
+.card{
+background:var(--gradient-card);
+border-radius:16px;
+padding:2rem 2.2rem;
+margin-bottom:1.75rem;
+border:1.5px solid #C7D4F0;
+border-top:3px solid #D97706;
+box-shadow:0 2px 8px rgba(100,120,200,.08)
+}
+.card-title{
+font-family:Rajdhani;
+font-size:1.35rem;
+font-weight:700;
+color:#D97706;
+letter-spacing:.04em;
+margin-bottom:.25rem
+}
+
+/* ── Stat value ── */
+.value{
+font-family:Rajdhani;
+font-size:3rem;
+font-weight:700;
+line-height:1.1;
+margin-top:.4rem;
+color:#1A2050
+}
+
+.stat-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+text-align:center;
+gap:1.5rem;
+margin-top:1.5rem
+}
+
+/* ── Sub-label above each stat ── */
+.stat-label{
+font-size:.75rem;
+color:#4A5A8C;
+letter-spacing:.05em;
+text-transform:uppercase;
+margin-bottom:.25rem;
+font-weight:600
+}
+
+.card.card-blue{
+border-top-color:#2563EB
+}
+.card.card-blue .card-title{
+color:#2563EB
+}
+
+/* ── Savings card 2-col ── */
+.savings-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+text-align:center;
+gap:1.5rem;
+margin-top:1.5rem
+}
+
+/* ── Divider between stat cells ── */
+.stat-grid > div + div,
+.savings-grid > div + div{
+border-left:1.5px solid #C7D4F0;
+padding-left:1.5rem
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<div class="sidebar-logo">
+<div class="sidebar-logo-icon">✦</div>
+<div class="sidebar-logo-text">SolarFlow</div>
+</div>
+<div class="nav-label">Main</div>
+<nav class="nav">
+<a href="index.html"><span class="nav-icon">🧠</span> VPP</a>
+<a href="solar.html"><span class="nav-icon">📊</span> Solar Dashboard</a>
+<a href="solar-forecast.html"><span class="nav-icon">☀️</span> Solar Forecast</a>
+<a href="demand.html" class="active"><span class="nav-icon">⚡</span> Demand</a>
+<a href="recommendations.html"><span class="nav-icon">💡</span> Recommendations</a>
+</nav>
+</aside>
+
+<main class="main-content">
+
+<h1 style="font-family:Rajdhani;font-size:2.5rem;background:var(--gradient-solar);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
+Demand & Prediction
+</h1>
+<p style="color:var(--text-secondary);margin-bottom:2rem">
+AI-powered demand forecasting & energy optimization
+</p>
+
+<!-- CURRENT DEMAND -->
+<div class="card">
+<h3 class="card-title">Current Campus Demand</h3>
+<div class="stat-grid">
+
+<div>
+<div class="stat-label">Real-Time Load</div>
+<div id="realtime-load" class="value" style="color:var(--primary-solar)">-- kW</div>
+</div>
+
+<div>
+<div class="stat-label">Grid Import</div>
+<div id="grid-import" class="value" style="color:var(--accent-cyan)">-- kW</div>
+</div>
+
+<div>
+<div class="stat-label">Energy Source</div>
+<div id="energy-source" class="value" style="color:var(--success)">---</div>
+</div>
+
+</div>
+</div>
+
+<!-- TOMORROW FORECAST — now a proper sibling card -->
+<div class="card card-blue">
+<h3 class="card-title">Tomorrow Demand Forecast</h3>
+<div style="text-align:center;margin-top:1.5rem">
+<div class="stat-label">Predicted Total Consumption</div>
+<div id="tomorrow-demand" class="value" style="color:var(--primary-blue)">-- kWh</div>
+</div>
+</div>
+
+<!-- SAVINGS -->
+<div class="card">
+<h3 class="card-title">Savings & Carbon Impact</h3>
+<div class="savings-grid">
+
+<div>
+<div class="stat-label">Cost Savings</div>
+<div id="cost-savings" class="value" style="color:var(--success)">₹ --</div>
+</div>
+
+<div>
+<div class="stat-label">CO₂ Reduced</div>
+<div id="co2-saved" class="value" style="color:var(--success)">-- tons</div>
+</div>
+
+</div>
+</div>
+
+</main>
+
+<!-- 🔥 LIVE BACKEND SCRIPT -->
+<script>
+
+async function loadDemandData(){
+    try{
+        const response = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/data`);
+        if(!response.ok){ throw new Error("API not responding"); }
+        const data = await response.json();
+        console.log("API DATA:", data);
+        const loadEl = document.getElementById("realtime-load");
+        const gridEl = document.getElementById("grid-import");
+        const srcEl  = document.getElementById("energy-source");
+        const costEl = document.getElementById("cost-savings");
+        const co2El  = document.getElementById("co2-saved");
+        if(loadEl) loadEl.innerText = data.demand_kw + " kW";
+        if(gridEl) gridEl.innerText = data.grid_import + " kW";
+        if(srcEl)  srcEl.innerText  = data.source;
+        if(costEl) costEl.innerText = "₹ " + data.cost_saving;
+        if(co2El)  co2El.innerText  = data.co2_saved + " tons";
+    }
+    catch(err){ console.error("❌ Error loading demand data:", err); }
+}
+
+async function loadTomorrowDemand(){
+    try{
+        const res = await fetch(`${window.__APP_CONFIG__.API_BASE}/api/demand-tomorrow-total`);
+        if(!res.ok){ throw new Error("Tomorrow demand API error"); }
+        const data = await res.json();
+        const el = document.getElementById("tomorrow-demand");
+        if(el){ el.innerText = data.tomorrow_total_demand_kwh + " kWh"; }
+    }
+    catch(err){ console.error("Tomorrow demand error:", err); }
+}
+
+window.addEventListener("DOMContentLoaded", function(){
+    loadDemandData();
+    loadTomorrowDemand();
+    setInterval(loadDemandData, 5000);
+    setInterval(loadTomorrowDemand, 60000);
+});
+
+</script>
+
+</body>
+</html>

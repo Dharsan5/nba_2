@@ -1,0 +1,10 @@
+# Battery Configuration
+BATTERY_CAPACITY_KWH = 200
+MAX_CHARGE_KW = 50
+MAX_DISCHARGE_KW = 50
+BATTERY_EFFICIENCY = 0.9
+INITIAL_SOC = 0.6   # 60%
+
+# Grid & Carbon
+GRID_TARIFF_RS = 6.0
+GRID_CO2_FACTOR = 0.82  # kg CO2 per kWh (India)
