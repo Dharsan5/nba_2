@@ -12,10 +12,10 @@ This project is split into:
 4. Set the service configuration:
    - Name: `campus-energy-orchestrator-api`
    - Root directory: `campus-energy-orchestrator/backend`
+   - Python version: `3.10`
    - Build command: `pip install -r requirements.txt`
    - Start command: `gunicorn app:app --bind 0.0.0.0:$PORT`
-5. Keep the default Python version or choose `3.10`.
-6. Deploy.
+5. Deploy.
 
 After deployment, copy the Render URL, for example:
 `https://campus-energy-orchestrator-api.onrender.com`
